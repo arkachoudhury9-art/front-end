@@ -1,5 +1,6 @@
-import type { ApiAnomaly } from "@/types/api";
+import type { ApiAnomaly, ApiReasoning } from "@/types/api";
 import type { Anomaly, AnomalyPriority, SolutionAction } from "@/types/anomaly";
+import type { ReasoningEvent } from "@/types/reasoning";
 
 const SEVERITY_TO_PRIORITY: Record<string, AnomalyPriority> = {
   P1_CRITICAL: "critical",
@@ -25,6 +26,10 @@ const SOLUTIONS_BY_PRIORITY: Record<AnomalyPriority, SolutionAction[]> = {
 };
 
 export function formatAnomalyType(anomalyType: string): string {
+  if (anomalyType === "NONE") {
+    return "None";
+  }
+
   return anomalyType
     .toLowerCase()
     .split("_")
@@ -36,6 +41,20 @@ export function mapSeverityToPriority(severity: string): AnomalyPriority {
   return SEVERITY_TO_PRIORITY[severity] ?? "medium";
 }
 
+function mapApiReasoningToEvent(
+  assetId: string,
+  reasoning: ApiReasoning,
+): ReasoningEvent | undefined {
+  if (!reasoning) {
+    return undefined;
+  }
+
+  return {
+    asset_id: assetId,
+    ...reasoning,
+  };
+}
+
 export function mapApiAnomalyToUi(apiAnomaly: ApiAnomaly): Anomaly {
   const priority = mapSeverityToPriority(apiAnomaly.severity);
 
@@ -45,12 +64,18 @@ export function mapApiAnomalyToUi(apiAnomaly: ApiAnomaly): Anomaly {
     priority,
     severity: apiAnomaly.severity,
     sensorName: apiAnomaly.sensor_name,
+    sensorStatus: apiAnomaly.sensor_status,
     reason: formatAnomalyType(apiAnomaly.anomaly_type),
     confidence: apiAnomaly.confidence,
     sessionId: apiAnomaly.session_id,
     statisticalAnalytics: apiAnomaly.statistical_analytics,
     solutions: SOLUTIONS_BY_PRIORITY[priority],
-    anomalyDetected: true,
+    anomalyDetected: apiAnomaly.anomaly_detected,
+    reasoningEvent: mapApiReasoningToEvent(
+      apiAnomaly.asset_id,
+      apiAnomaly.reasoning,
+    ),
+    source: "history",
   };
 }
 

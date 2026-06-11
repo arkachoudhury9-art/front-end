@@ -1,11 +1,12 @@
 import type { AnomalyWebSocketMessage } from "@/types/websocket";
 
+/** Live detections for assets not yet in history — appended to the table. */
 const MOCK_MESSAGES: AnomalyWebSocketMessage[] = [
   {
-    asset_id: "TRAIN_1-VEH_001-W1",
+    asset_id: "AST1234",
     statistical_analytics: {
       previous_value: 151.0,
-      delta_percent: "-2.79%",
+      delta_percent: "+18.40%",
       rolling_avg_24h: 177.63,
       z_score: 4.0,
     },
@@ -16,46 +17,18 @@ const MOCK_MESSAGES: AnomalyWebSocketMessage[] = [
     confidence: 0.9,
   },
   {
-    asset_id: "TRAIN_2-VEH_014-W3",
+    asset_id: "AST5678",
     statistical_analytics: {
-      previous_value: 2.45,
-      delta_percent: "+1.20%",
-      rolling_avg_24h: 2.89,
-      z_score: 1.1,
+      previous_value: 62.5,
+      delta_percent: "+22.10%",
+      rolling_avg_24h: 58.2,
+      z_score: 3.2,
     },
-    sensor_status: "NORMAL",
-    rate_of_change_per_min: 0.05,
-    anomaly_detected: false,
-    anomaly_type: "NONE",
-    confidence: 0.95,
-  },
-  {
-    asset_id: "TRAIN_1-VEH_008-W2",
-    statistical_analytics: {
-      previous_value: 98.4,
-      delta_percent: "-12.50%",
-      rolling_avg_24h: 104.5,
-      z_score: 2.8,
-    },
-    sensor_status: "MODERATE_OUTLIER",
-    rate_of_change_per_min: 0.18,
+    sensor_status: "HIGH_OUTLIER",
+    rate_of_change_per_min: 0.52,
     anomaly_detected: true,
-    anomaly_type: "THRESHOLD_BREACH",
-    confidence: 0.72,
-  },
-  {
-    asset_id: "AST1234",
-    statistical_analytics: {
-      previous_value: 151.0,
-      delta_percent: "-2.79%",
-      rolling_avg_24h: 177.62741935483874,
-      z_score: 4.0,
-    },
-    sensor_status: "NORMAL",
-    rate_of_change_per_min: 0.36,
-    anomaly_detected: false,
-    anomaly_type: "NONE",
-    confidence: 0.9,
+    anomaly_type: "TREND_ESCALATION_AND_STATISTICAL_ANOMALY",
+    confidence: 0.84,
   },
 ];
 

@@ -1,6 +1,6 @@
 import type { AnomalyHistResponse } from "@/types/api";
 
-/** Mock payload matching GET /anomaly_hist response shape. */
+/** Mock payload: initial load includes anomaly_detected, sensor_status, and reasoning fields. */
 export const mockAnomalyHistResponse: AnomalyHistResponse = {
   anomalies: [
     {
@@ -13,6 +13,9 @@ export const mockAnomalyHistResponse: AnomalyHistResponse = {
       session_id: "815b93e9-a5c8-4b9b-bbca-e67faced3248",
       asset_id: "TRAIN_1-VEH_001-W1",
       confidence: 1.0,
+      anomaly_detected: true,
+      sensor_status: "CRITICAL_OUTLIER",
+      reasoning: null,
       statistical_analytics: {
         previous_value: 15.54,
         delta_percent: "+164.15%",
@@ -35,6 +38,9 @@ export const mockAnomalyHistResponse: AnomalyHistResponse = {
       session_id: "815b93e9-a5c8-4b9b-bbca-e67faced3248",
       asset_id: "TRAIN_1-VEH_001-W1",
       confidence: 1.0,
+      anomaly_detected: true,
+      sensor_status: "CRITICAL_OUTLIER",
+      reasoning: null,
       statistical_analytics: {
         previous_value: 80.97315609097598,
         delta_percent: "+336.28%",
@@ -56,6 +62,9 @@ export const mockAnomalyHistResponse: AnomalyHistResponse = {
       session_id: "a12c44f1-9b2e-4d10-8f31-2c9e6a7b4d01",
       asset_id: "TRAIN_2-VEH_014-W3",
       confidence: 0.87,
+      anomaly_detected: false,
+      sensor_status: "NORMAL",
+      reasoning: null,
       statistical_analytics: {
         previous_value: 2.14,
         delta_percent: "+42.50%",
@@ -76,6 +85,20 @@ export const mockAnomalyHistResponse: AnomalyHistResponse = {
       session_id: "f8e21b90-1c4a-4f6e-9d22-7b5a3c1e0f44",
       asset_id: "TRAIN_1-VEH_008-W2",
       confidence: 0.62,
+      anomaly_detected: true,
+      sensor_status: "MODERATE_OUTLIER",
+      reasoning: {
+        selected_actions: ["Schedule Inspection"],
+        justification:
+          "Historical pressure breach on TRAIN_1-VEH_008-W2 with prior SOP escalation.",
+        step_by_step_instructions: [
+          "Schedule inspection within maintenance window",
+          "Run diagnostic pressure test per SOP-PRES-008",
+        ],
+        sop_references: ["SOP-PRES-008 §2.1 — Pressure Threshold Response"],
+        severity_escalation_required: false,
+        estimated_resolution_time: "4-6 hours",
+      },
       statistical_analytics: {
         previous_value: 101.2,
         delta_percent: "-8.30%",

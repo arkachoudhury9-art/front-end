@@ -3,6 +3,8 @@ import type { ReasoningEvent } from "@/types/reasoning";
 
 export type AnomalyPriority = "critical" | "high" | "medium" | "low";
 
+export type AnomalySource = "history" | "live";
+
 export type SolutionAction = {
   id: string;
   label: string;
@@ -22,6 +24,7 @@ export type Anomaly = {
   solutions: SolutionAction[];
   anomalyDetected: boolean;
   reasoningEvent?: ReasoningEvent;
+  source: AnomalySource;
 };
 
 export function hasReasoningJustification(

@@ -1,3 +1,5 @@
+import type { ReasoningEvent } from "@/types/reasoning";
+
 export type AnomalySeverity =
   | "P1_CRITICAL"
   | "P2_HIGH"
@@ -16,6 +18,9 @@ export type StatisticalAnalytics = {
   confidence_score: number;
 };
 
+/** Reasoning fields embedded in anomaly_hist (same shape as reasoning WebSocket). */
+export type ApiReasoning = Omit<ReasoningEvent, "asset_id"> | null;
+
 export type ApiAnomaly = {
   id: number;
   sensor_name: string;
@@ -26,6 +31,11 @@ export type ApiAnomaly = {
   asset_id: string;
   confidence: number;
   statistical_analytics: StatisticalAnalytics;
+  /** From anomaly detection WebSocket shape */
+  anomaly_detected: boolean;
+  sensor_status: string;
+  /** From reasoning WebSocket shape — null until reasoning is available */
+  reasoning: ApiReasoning;
 };
 
 export type AnomalyHistResponse = {

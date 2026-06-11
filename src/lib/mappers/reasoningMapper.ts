@@ -1,23 +1,30 @@
+import { upsertLiveAnomaly } from "@/lib/store/anomalyStore";
 import type { Anomaly } from "@/types/anomaly";
 import type { ReasoningEvent } from "@/types/reasoning";
 
-export function applyReasoningEvent(
+function applyReasoningToLiveAnomaly(
   anomaly: Anomaly,
   event: ReasoningEvent,
 ): Anomaly {
-  if (anomaly.assetId !== event.asset_id) {
+  if (anomaly.source !== "live" || anomaly.assetId !== event.asset_id) {
     return anomaly;
   }
 
-  return {
+  const updated = {
     ...anomaly,
     reasoningEvent: event,
   };
+
+  upsertLiveAnomaly(updated);
+  return updated;
 }
 
-export function applyReasoningEvents(
+/** Reasoning WebSocket updates only live-detected anomalies. */
+export function applyReasoningToLiveAnomalies(
   anomalies: Anomaly[],
   event: ReasoningEvent,
 ): Anomaly[] {
-  return anomalies.map((anomaly) => applyReasoningEvent(anomaly, event));
+  return anomalies.map((anomaly) =>
+    applyReasoningToLiveAnomaly(anomaly, event),
+  );
 }

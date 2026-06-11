@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { AnomalySolution } from "@/components/AnomalySolution";
 import { ApiStatusBanner } from "@/components/ApiStatusBanner";
 import { PriorityBadge } from "@/components/PriorityBadge";
-import { useReasoningEvent } from "@/hooks/useReasoningEvent";
 import { fetchAnomalyByIdClient } from "@/lib/api/anomalyClient";
+import { applyReasoningToLiveAnomalies } from "@/lib/mappers/reasoningMapper";
+import { getLiveAnomalyById, subscribeToAnomalies } from "@/lib/store/anomalyStore";
 import { setReasoningEvent } from "@/lib/store/reasoningEventStore";
 import { connectReasoningSocket } from "@/lib/ws/reasoningSocket";
 import type { Anomaly } from "@/types/anomaly";
@@ -19,7 +20,12 @@ export function AnomalySolutionView({ anomalyId }: AnomalySolutionViewProps) {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const reasoningEvent = useReasoningEvent(anomaly?.assetId ?? "");
+  const syncAnomaly = useCallback(() => {
+    const live = getLiveAnomalyById(anomalyId);
+    if (live) {
+      setAnomaly(live);
+    }
+  }, [anomalyId]);
 
   useEffect(() => {
     let cancelled = false;
@@ -39,9 +45,22 @@ export function AnomalySolutionView({ anomalyId }: AnomalySolutionViewProps) {
   useEffect(() => {
     const disconnect = connectReasoningSocket((message) => {
       setReasoningEvent(message);
+      setAnomaly((current) => {
+        if (!current || current.source !== "live") {
+          return current;
+        }
+
+        const [updated] = applyReasoningToLiveAnomalies([current], message);
+        return updated;
+      });
     });
+
     return disconnect;
   }, []);
+
+  useEffect(() => {
+    return subscribeToAnomalies(syncAnomaly);
+  }, [syncAnomaly]);
 
   if (loading) {
     return (
@@ -63,7 +82,7 @@ export function AnomalySolutionView({ anomalyId }: AnomalySolutionViewProps) {
   }
 
   return (
-    <div className="flex flex-col gap-3">
+    <>
       {error && <ApiStatusBanner message={error} />}
       <div className="flex shrink-0 flex-wrap items-center gap-3 rounded-xl border border-surface-border bg-surface-raised px-4 py-2.5 text-sm">
         <div className="flex items-center gap-2">
@@ -94,7 +113,10 @@ export function AnomalySolutionView({ anomalyId }: AnomalySolutionViewProps) {
         </p>
       </div>
 
-      <AnomalySolution anomaly={anomaly} reasoningEvent={reasoningEvent} />
-    </div>
+      <AnomalySolution
+        anomaly={anomaly}
+        reasoningEvent={anomaly.reasoningEvent}
+      />
+    </>
   );
 }

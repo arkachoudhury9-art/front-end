@@ -4,12 +4,9 @@ import { useCallback, useEffect, useState } from "react";
 import { AnomalyList } from "@/components/AnomalyList";
 import { ApiStatusBanner } from "@/components/ApiStatusBanner";
 import { fetchAnomaliesClient } from "@/lib/api/anomalyClient";
-import { applyReasoningEvents } from "@/lib/mappers/reasoningMapper";
-import { applyWebSocketUpdates } from "@/lib/mappers/websocketMapper";
-import {
-  getReasoningEvent,
-  setReasoningEvent,
-} from "@/lib/store/reasoningEventStore";
+import { applyReasoningToLiveAnomalies } from "@/lib/mappers/reasoningMapper";
+import { appendLiveAnomalyFromWebSocket } from "@/lib/mappers/websocketMapper";
+import { setReasoningEvent } from "@/lib/store/reasoningEventStore";
 import { connectAnomalySocket } from "@/lib/ws/anomalySocket";
 import { connectReasoningSocket } from "@/lib/ws/reasoningSocket";
 import type { Anomaly } from "@/types/anomaly";
@@ -29,15 +26,7 @@ export function AnomalyDashboard() {
 
     fetchAnomaliesClient().then((result) => {
       if (cancelled) return;
-
-      const hydrated = result.anomalies.map((anomaly) => {
-        const reasoningEvent = getReasoningEvent(anomaly.assetId);
-        return reasoningEvent
-          ? { ...anomaly, reasoningEvent }
-          : anomaly;
-      });
-
-      setAnomalies(hydrated);
+      setAnomalies(result.anomalies);
       setError(result.error);
       setLoading(false);
     });
@@ -47,35 +36,38 @@ export function AnomalyDashboard() {
     };
   }, []);
 
-  const handleWebSocketMessage = useCallback(
-    (message: AnomalyWebSocketMessage) => {
-      setAnomalies((current) => applyWebSocketUpdates(current, message));
-      setUpdatedAssetIds((current) => new Set(current).add(message.asset_id));
-
-      setTimeout(() => {
-        setUpdatedAssetIds((current) => {
-          const next = new Set(current);
-          next.delete(message.asset_id);
-          return next;
-        });
-      }, 2000);
-    },
-    [],
-  );
-
-  const handleReasoningMessage = useCallback((message: ReasoningEvent) => {
-    setReasoningEvent(message);
-    setAnomalies((current) => applyReasoningEvents(current, message));
-    setUpdatedAssetIds((current) => new Set(current).add(message.asset_id));
+  const flashUpdatedRow = useCallback((assetId: string) => {
+    setUpdatedAssetIds((current) => new Set(current).add(assetId));
 
     setTimeout(() => {
       setUpdatedAssetIds((current) => {
         const next = new Set(current);
-        next.delete(message.asset_id);
+        next.delete(assetId);
         return next;
       });
     }, 2000);
   }, []);
+
+  const handleWebSocketMessage = useCallback(
+    (message: AnomalyWebSocketMessage) => {
+      setAnomalies((current) =>
+        appendLiveAnomalyFromWebSocket(current, message),
+      );
+      flashUpdatedRow(message.asset_id);
+    },
+    [flashUpdatedRow],
+  );
+
+  const handleReasoningMessage = useCallback(
+    (message: ReasoningEvent) => {
+      setReasoningEvent(message);
+      setAnomalies((current) =>
+        applyReasoningToLiveAnomalies(current, message),
+      );
+      flashUpdatedRow(message.asset_id);
+    },
+    [flashUpdatedRow],
+  );
 
   useEffect(() => {
     const disconnectAnomaly = connectAnomalySocket(handleWebSocketMessage);

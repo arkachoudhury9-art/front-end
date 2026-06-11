@@ -1,40 +1,36 @@
 import type { ReasoningEvent } from "@/types/reasoning";
 
+/** Reasoning for live-detected assets added via anomaly WebSocket. */
 const MOCK_REASONING_MESSAGES: ReasoningEvent[] = [
   {
-    asset_id: "TRAIN_2-VEH_014-W3",
+    asset_id: "AST1234",
     selected_actions: ["Deploy Field Agent"],
     justification:
-      "Vibration sensor returned to baseline but rolling z-score remains elevated. SOP-MAINT-014 requires field verification before clearing the alert.",
+      "Temperature spike on AST1234 exceeds SOP threshold. Field verification required before remediation.",
     step_by_step_instructions: [
-      "Dispatch field agent to TRAIN_2-VEH_014-W3 wheel assembly",
-      "Inspect bearing housing and collect vibration spectrum",
-      "Compare readings against 24h rolling average thresholds",
-      "Submit inspection report and update asset maintenance log",
+      "Dispatch field agent to AST1234 sensor location",
+      "Collect temperature readings and compare to rolling 24h average",
+      "Document findings and update maintenance log",
     ],
     sop_references: [
-      "SOP-MAINT-014 §4.2 — Vibration Escalation",
-      "Manual W3-Bearing — Section 7: Field Inspection",
+      "SOP-TEMP-014 §3.1 — Critical Temperature Response",
+      "Manual AST1234 — Section 5: Field Inspection",
     ],
-    severity_escalation_required: false,
+    severity_escalation_required: true,
     estimated_resolution_time: "2-4 hours",
   },
   {
-    asset_id: "TRAIN_1-VEH_008-W2",
+    asset_id: "AST5678",
     selected_actions: ["Schedule Inspection"],
     justification:
-      "Pressure delta exceeds SOP threshold. Historical context shows similar pattern preceded seal degradation on this asset class.",
+      "Trend escalation detected on AST5678. Schedule inspection per SOP before clearing alert.",
     step_by_step_instructions: [
       "Schedule inspection within next maintenance window",
-      "Isolate pressure line segment W2-P3",
-      "Run diagnostic pressure test per SOP-PRES-008",
-      "Document findings and recommend seal replacement if leakage detected",
+      "Isolate affected subsystem and run diagnostics",
+      "Submit inspection report",
     ],
-    sop_references: [
-      "SOP-PRES-008 §2.1 — Pressure Threshold Response",
-      "Asset Manual TRAIN_1-VEH_008 — Seal Maintenance",
-    ],
-    severity_escalation_required: true,
+    sop_references: ["SOP-MAINT-022 §4.2 — Trend Escalation"],
+    severity_escalation_required: false,
     estimated_resolution_time: "4-6 hours",
   },
 ];

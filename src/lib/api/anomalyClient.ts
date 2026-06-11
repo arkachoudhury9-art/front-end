@@ -8,6 +8,7 @@ import {
 import { formatFetchError } from "@/lib/api/errors";
 import { mapApiAnomaliesToUi } from "@/lib/mappers/anomalyMapper";
 import { mockAnomalyHistResponse } from "@/lib/mock/anomalyHistResponse";
+import { getLiveAnomalyById } from "@/lib/store/anomalyStore";
 import type { AnomalyHistResponse } from "@/types/api";
 import type { AnomaliesResult, Anomaly } from "@/types/anomaly";
 
@@ -47,7 +48,7 @@ async function fetchAnomalyHistFromApi(): Promise<AnomalyHistResponse> {
   return data;
 }
 
-/** Client-only anomaly history fetch. */
+/** Client-only: initial page load from anomaly_hist. */
 export async function fetchAnomaliesClient(): Promise<AnomaliesResult> {
   try {
     if (USE_MOCK_API) {
@@ -82,10 +83,19 @@ export async function fetchAnomalyByIdClient(id: string): Promise<{
   anomaly?: Anomaly;
   error: string | null;
 }> {
+  const liveAnomaly = getLiveAnomalyById(id);
+  if (liveAnomaly) {
+    logClient("anomaly_lookup", `live anomaly id=${id}`, liveAnomaly);
+    return { anomaly: liveAnomaly, error: null };
+  }
+
   const result = await fetchAnomaliesClient();
   const anomaly = result.anomalies.find((item) => item.id === id);
 
-  logClient("anomaly_hist", `lookup anomaly id=${id}`, { anomaly, error: result.error });
+  logClient("anomaly_lookup", `history anomaly id=${id}`, {
+    anomaly,
+    error: result.error,
+  });
 
   return {
     anomaly,
