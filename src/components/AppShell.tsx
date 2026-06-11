@@ -7,6 +7,7 @@ type AppShellProps = {
   children: React.ReactNode;
   backHref?: string;
   backLabel?: string;
+  fillViewport?: boolean;
 };
 
 export function AppShell({
@@ -15,9 +16,16 @@ export function AppShell({
   children,
   backHref,
   backLabel = "Back to anomalies",
+  fillViewport = false,
 }: AppShellProps) {
   return (
-    <div className="min-h-screen bg-surface text-slate-100">
+    <div
+      className={`bg-surface text-slate-100 ${
+        fillViewport
+          ? "flex h-screen flex-col overflow-hidden"
+          : "min-h-screen"
+      }`}
+    >
       <header className="border-b border-surface-border bg-surface-raised/80 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-4">
           <div className="flex items-center gap-4">
@@ -59,7 +67,15 @@ export function AppShell({
           )}
         </div>
       </header>
-      <main className="mx-auto max-w-7xl px-6 py-8">{children}</main>
+      <main
+        className={`mx-auto w-full max-w-7xl flex-1 px-6 ${
+          fillViewport
+            ? "flex min-h-0 flex-col overflow-hidden py-4"
+            : "py-8"
+        }`}
+      >
+        {children}
+      </main>
     </div>
   );
 }

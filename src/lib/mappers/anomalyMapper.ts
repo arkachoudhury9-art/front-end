@@ -50,6 +50,7 @@ export function mapApiAnomalyToUi(apiAnomaly: ApiAnomaly): Anomaly {
     sessionId: apiAnomaly.session_id,
     statisticalAnalytics: apiAnomaly.statistical_analytics,
     solutions: SOLUTIONS_BY_PRIORITY[priority],
+    anomalyDetected: true,
   };
 }
 

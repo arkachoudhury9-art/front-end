@@ -24,6 +24,11 @@ const config: Config = {
           medium: "#eab308",
           low: "#22c55e",
         },
+        ws: {
+          row: "#0c3344",
+          "row-hover": "#104455",
+          border: "#22d3ee",
+        },
       },
       fontFamily: {
         sans: ["var(--font-geist-sans)", "system-ui", "sans-serif"],

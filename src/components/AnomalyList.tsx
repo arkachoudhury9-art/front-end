@@ -2,16 +2,18 @@
 
 import Link from "next/link";
 import { PriorityBadge } from "@/components/PriorityBadge";
-import type { Anomaly } from "@/types/anomaly";
+import { canReviewAnomaly, type Anomaly } from "@/types/anomaly";
 
 type AnomalyListProps = {
   anomalies: Anomaly[];
   error?: string | null;
+  updatedAssetIds?: Set<string>;
 };
 
 export function AnomalyList({
   anomalies = [],
   error,
+  updatedAssetIds = new Set(),
 }: AnomalyListProps) {
   return (
     <section className="overflow-hidden rounded-xl border border-surface-border bg-surface-raised shadow-xl shadow-black/20">
@@ -42,14 +44,22 @@ export function AnomalyList({
               <th className="px-6 py-3">Asset ID</th>
               <th className="px-6 py-3">Priority</th>
               <th className="px-6 py-3">Reason</th>
-              <th className="px-6 py-3">Solution</th>
+              <th className="px-6 py-3">AI Verdict</th>
+              <th className="px-6 py-3">Action</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-surface-border">
-            {anomalies.map((anomaly) => (
+            {anomalies.map((anomaly) => {
+              const isUpdated = updatedAssetIds.has(anomaly.assetId);
+
+              return (
               <tr
                 key={anomaly.id}
-                className="transition hover:bg-surface/40"
+                className={`transition-colors duration-500 ${
+                  isUpdated
+                    ? "border-l-[3px] border-l-ws-border bg-ws-row hover:bg-ws-row-hover"
+                    : "border-l-[3px] border-l-transparent hover:bg-surface/40"
+                }`}
               >
                 <td className="whitespace-nowrap px-6 py-4 font-mono text-sm font-medium text-accent">
                   {anomaly.id}
@@ -68,7 +78,18 @@ export function AnomalyList({
                   {anomaly.reason}
                 </td>
                 <td className="px-6 py-4">
-                  {anomaly.solutions.length > 0 ? (
+                  <span
+                    className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ${
+                      anomaly.anomalyDetected
+                        ? "bg-priority-low/15 text-priority-low ring-priority-low/40"
+                        : "bg-priority-critical/15 text-priority-critical ring-priority-critical/40"
+                    }`}
+                  >
+                    {String(anomaly.anomalyDetected)}
+                  </span>
+                </td>
+                <td className="px-6 py-4">
+                  {canReviewAnomaly(anomaly) ? (
                     <Link
                       href={`/anomaly/${encodeURIComponent(anomaly.id)}/solution`}
                       className="inline-flex rounded-lg border border-priority-low/40 bg-priority-low/15 px-3 py-1.5 text-xs font-semibold text-priority-low transition hover:border-priority-low hover:bg-priority-low/25 hover:text-white"
@@ -78,6 +99,11 @@ export function AnomalyList({
                   ) : (
                     <span
                       aria-disabled="true"
+                      title={
+                        anomaly.anomalyDetected
+                          ? "Review unavailable"
+                          : "Awaiting AI reasoning justification"
+                      }
                       className="inline-flex cursor-not-allowed rounded-lg border border-surface-border bg-surface px-3 py-1.5 text-xs font-semibold text-slate-500 opacity-50"
                     >
                       Review
@@ -85,7 +111,8 @@ export function AnomalyList({
                   )}
                 </td>
               </tr>
-            ))}
+            );
+            })}
           </tbody>
         </table>
       </div>
