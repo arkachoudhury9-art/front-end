@@ -28,7 +28,7 @@ export function AnomalySolution({
 
   const handleDecision = (type: "accepted" | "rejected") => {
     setSubmitting(true);
-    console.info(`[review] ${type}`, {
+    console.log(`[client][review] ${type}`, {
       anomalyId: anomaly.id,
       assetId: anomaly.assetId,
       comment,

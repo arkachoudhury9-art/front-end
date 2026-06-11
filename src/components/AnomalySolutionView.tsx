@@ -5,7 +5,7 @@ import { AnomalySolution } from "@/components/AnomalySolution";
 import { ApiStatusBanner } from "@/components/ApiStatusBanner";
 import { PriorityBadge } from "@/components/PriorityBadge";
 import { useReasoningEvent } from "@/hooks/useReasoningEvent";
-import { fetchAnomaliesClient } from "@/lib/api/anomalyClient";
+import { fetchAnomalyByIdClient } from "@/lib/api/anomalyClient";
 import { setReasoningEvent } from "@/lib/store/reasoningEventStore";
 import { connectReasoningSocket } from "@/lib/ws/reasoningSocket";
 import type { Anomaly } from "@/types/anomaly";
@@ -24,10 +24,9 @@ export function AnomalySolutionView({ anomalyId }: AnomalySolutionViewProps) {
   useEffect(() => {
     let cancelled = false;
 
-    fetchAnomaliesClient().then((result) => {
+    fetchAnomalyByIdClient(anomalyId).then((result) => {
       if (cancelled) return;
-      const found = result.anomalies.find((item) => item.id === anomalyId);
-      setAnomaly(found);
+      setAnomaly(result.anomaly);
       setError(result.error);
       setLoading(false);
     });

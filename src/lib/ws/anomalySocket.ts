@@ -1,3 +1,6 @@
+"use client";
+
+import { logClient } from "@/lib/client/log";
 import {
   ANOMALY_WS_URL,
   USE_MOCK_WEBSOCKET,
@@ -31,21 +34,28 @@ function parseMessage(data: unknown): AnomalyWebSocketMessage | null {
   }
 }
 
+function emitMessage(
+  onMessage: AnomalySocketListener,
+  message: AnomalyWebSocketMessage,
+  source: "mock" | "live",
+): void {
+  logClient("ws/anomaly", `${source} message`, message);
+  onMessage(message);
+}
+
 function createMockSocket(onMessage: AnomalySocketListener): () => void {
-  let intervalId: ReturnType<typeof setInterval> | null = null;
+  logClient("ws/anomaly", "using mock WebSocket");
 
   const emit = () => {
-    onMessage(getNextMockWebSocketMessage());
+    emitMessage(onMessage, getNextMockWebSocketMessage(), "mock");
   };
 
   const initialTimeout = setTimeout(emit, MOCK_INITIAL_DELAY_MS);
-  intervalId = setInterval(emit, MOCK_INTERVAL_MS);
+  const intervalId = setInterval(emit, MOCK_INTERVAL_MS);
 
   return () => {
     clearTimeout(initialTimeout);
-    if (intervalId) {
-      clearInterval(intervalId);
-    }
+    clearInterval(intervalId);
   };
 }
 
@@ -57,22 +67,30 @@ function createLiveSocket(onMessage: AnomalySocketListener): () => void {
   const connect = () => {
     if (closed) return;
 
+    logClient("ws/anomaly", "connecting", { url: ANOMALY_WS_URL });
     socket = new WebSocket(ANOMALY_WS_URL);
 
+    socket.onopen = () => {
+      logClient("ws/anomaly", "connected");
+    };
+
     socket.onmessage = (event) => {
+      logClient("ws/anomaly", "raw message", event.data);
       const message = parseMessage(event.data);
       if (message) {
-        onMessage(message);
+        emitMessage(onMessage, message, "live");
       }
     };
 
     socket.onclose = () => {
+      logClient("ws/anomaly", "disconnected");
       if (!closed) {
         reconnectTimeout = setTimeout(connect, 3000);
       }
     };
 
-    socket.onerror = () => {
+    socket.onerror = (error) => {
+      logClient("ws/anomaly", "error", error);
       socket?.close();
     };
   };
@@ -88,14 +106,13 @@ function createLiveSocket(onMessage: AnomalySocketListener): () => void {
   };
 }
 
+/** Client-only anomaly detection WebSocket. */
 export function connectAnomalySocket(
   onMessage: AnomalySocketListener,
 ): () => void {
   if (USE_MOCK_WEBSOCKET) {
-    console.info("[ws/anomaly] using mock WebSocket");
     return createMockSocket(onMessage);
   }
 
-  console.info("[ws/anomaly] connecting to", ANOMALY_WS_URL);
   return createLiveSocket(onMessage);
 }

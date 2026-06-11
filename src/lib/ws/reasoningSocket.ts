@@ -1,3 +1,6 @@
+"use client";
+
+import { logClient } from "@/lib/client/log";
 import {
   REASONING_WS_URL,
   USE_MOCK_REASONING_WEBSOCKET,
@@ -32,14 +35,24 @@ function parseMessage(data: unknown): ReasoningEvent | null {
   }
 }
 
-function createMockSocket(onMessage: ReasoningSocketListener): () => void {
-  const initialTimeout = setTimeout(() => {
-    onMessage(getNextMockReasoningMessage());
-  }, MOCK_INITIAL_DELAY_MS);
+function emitMessage(
+  onMessage: ReasoningSocketListener,
+  message: ReasoningEvent,
+  source: "mock" | "live",
+): void {
+  logClient("reasoning/events", `${source} message`, message);
+  onMessage(message);
+}
 
-  const intervalId = setInterval(() => {
-    onMessage(getNextMockReasoningMessage());
-  }, MOCK_INTERVAL_MS);
+function createMockSocket(onMessage: ReasoningSocketListener): () => void {
+  logClient("reasoning/events", "using mock WebSocket");
+
+  const emit = () => {
+    emitMessage(onMessage, getNextMockReasoningMessage(), "mock");
+  };
+
+  const initialTimeout = setTimeout(emit, MOCK_INITIAL_DELAY_MS);
+  const intervalId = setInterval(emit, MOCK_INTERVAL_MS);
 
   return () => {
     clearTimeout(initialTimeout);
@@ -55,22 +68,30 @@ function createLiveSocket(onMessage: ReasoningSocketListener): () => void {
   const connect = () => {
     if (closed) return;
 
+    logClient("reasoning/events", "connecting", { url: REASONING_WS_URL });
     socket = new WebSocket(REASONING_WS_URL);
 
+    socket.onopen = () => {
+      logClient("reasoning/events", "connected");
+    };
+
     socket.onmessage = (event) => {
+      logClient("reasoning/events", "raw message", event.data);
       const message = parseMessage(event.data);
       if (message) {
-        onMessage(message);
+        emitMessage(onMessage, message, "live");
       }
     };
 
     socket.onclose = () => {
+      logClient("reasoning/events", "disconnected");
       if (!closed) {
         reconnectTimeout = setTimeout(connect, 3000);
       }
     };
 
-    socket.onerror = () => {
+    socket.onerror = (error) => {
+      logClient("reasoning/events", "error", error);
       socket?.close();
     };
   };
@@ -86,14 +107,13 @@ function createLiveSocket(onMessage: ReasoningSocketListener): () => void {
   };
 }
 
+/** Client-only reasoning events WebSocket. */
 export function connectReasoningSocket(
   onMessage: ReasoningSocketListener,
 ): () => void {
   if (USE_MOCK_REASONING_WEBSOCKET) {
-    console.info("[reasoning/events] using mock WebSocket");
     return createMockSocket(onMessage);
   }
 
-  console.info("[reasoning/events] connecting to", REASONING_WS_URL);
   return createLiveSocket(onMessage);
 }
