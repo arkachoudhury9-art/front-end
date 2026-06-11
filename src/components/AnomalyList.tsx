@@ -6,9 +6,13 @@ import type { Anomaly } from "@/types/anomaly";
 
 type AnomalyListProps = {
   anomalies: Anomaly[];
+  error?: string | null;
 };
 
-export function AnomalyList({ anomalies }: AnomalyListProps) {
+export function AnomalyList({
+  anomalies = [],
+  error,
+}: AnomalyListProps) {
   return (
     <section className="overflow-hidden rounded-xl border border-surface-border bg-surface-raised shadow-xl shadow-black/20">
       <div className="flex items-center justify-between border-b border-surface-border px-6 py-4">
@@ -54,23 +58,31 @@ export function AnomalyList({ anomalies }: AnomalyListProps) {
                   {anomaly.assetId}
                 </td>
                 <td className="px-6 py-4">
-                  <PriorityBadge priority={anomaly.priority} />
+                  <PriorityBadge
+                    priority={anomaly.priority}
+                    label={anomaly.severity}
+                    analytics={anomaly.statisticalAnalytics}
+                  />
                 </td>
                 <td className="max-w-md px-6 py-4 text-slate-300">
                   {anomaly.reason}
                 </td>
                 <td className="px-6 py-4">
-                  <div className="flex flex-wrap gap-2">
-                    {anomaly.solutions.map((solution) => (
-                      <Link
-                        key={solution.id}
-                        href={`/anomaly/${encodeURIComponent(anomaly.id)}/solution?solution=${encodeURIComponent(solution.id)}`}
-                        className="rounded-lg border border-accent/30 bg-accent-muted px-3 py-1.5 text-xs font-medium text-accent transition hover:border-accent hover:bg-accent/20 hover:text-white"
-                      >
-                        {solution.label}
-                      </Link>
-                    ))}
-                  </div>
+                  {anomaly.solutions.length > 0 ? (
+                    <Link
+                      href={`/anomaly/${encodeURIComponent(anomaly.id)}/solution`}
+                      className="inline-flex rounded-lg border border-priority-low/40 bg-priority-low/15 px-3 py-1.5 text-xs font-semibold text-priority-low transition hover:border-priority-low hover:bg-priority-low/25 hover:text-white"
+                    >
+                      Review
+                    </Link>
+                  ) : (
+                    <span
+                      aria-disabled="true"
+                      className="inline-flex cursor-not-allowed rounded-lg border border-surface-border bg-surface px-3 py-1.5 text-xs font-semibold text-slate-500 opacity-50"
+                    >
+                      Review
+                    </span>
+                  )}
                 </td>
               </tr>
             ))}
@@ -80,7 +92,9 @@ export function AnomalyList({ anomalies }: AnomalyListProps) {
 
       {anomalies.length === 0 && (
         <div className="px-6 py-16 text-center text-slate-400">
-          No anomalies detected. All assets operating within normal parameters.
+          {error
+            ? "Could not load anomalies. Check that the API is running and try again."
+            : "No anomalies detected. All assets operating within normal parameters."}
         </div>
       )}
     </section>

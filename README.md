@@ -16,6 +16,16 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
+## API integration
+
+The app calls `GET http://127.0.0.1:8000/anomaly_hist`. By default it serves **mock data** that matches the API response shape.
+
+To switch to the live API, copy `.env.local.example` to `.env.local` and set:
+
+```bash
+NEXT_PUBLIC_USE_MOCK_API=false
+```
+
 ## Project structure
 
 ```
@@ -28,8 +38,14 @@ src/
     AnomalySolution.tsx
     AppShell.tsx
     PriorityBadge.tsx
-  lib/mockAnomalies.ts
-  types/anomaly.ts
+  lib/
+    api/anomalies.ts                  # fetchAnomalyHist + getAnomalies
+    api/config.ts                     # API base URL & mock toggle
+    mock/anomalyHistResponse.ts       # mock /anomaly_hist payload
+    mappers/anomalyMapper.ts          # API → UI mapping
+  types/
+    anomaly.ts
+    api.ts
 ```
 
 ## Scripts

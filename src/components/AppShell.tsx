@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { PicaStatusIndicator } from "@/components/PicaStatusIndicator";
 
 type AppShellProps = {
   title: string;
@@ -54,9 +55,7 @@ export function AppShell({
               ← {backLabel}
             </Link>
           ) : (
-            <span className="rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-400 ring-1 ring-emerald-500/30">
-              Live feed
-            </span>
+            <PicaStatusIndicator />
           )}
         </div>
       </header>

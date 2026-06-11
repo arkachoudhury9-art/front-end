@@ -1,14 +1,20 @@
 import { AnomalyList } from "@/components/AnomalyList";
+import { ApiStatusBanner } from "@/components/ApiStatusBanner";
 import { AppShell } from "@/components/AppShell";
-import { mockAnomalies } from "@/lib/mockAnomalies";
+import { getAnomalies } from "@/lib/api/anomalies";
 
-export default function HomePage() {
+export const dynamic = "force-dynamic";
+
+export default async function HomePage() {
+  const { anomalies, error } = await getAnomalies();
+
   return (
     <AppShell
-      title="Anomaly Detection"
+      title="PICA"
       subtitle="Monitor assets and initiate remediation workflows"
     >
-      <AnomalyList anomalies={mockAnomalies} />
+      {error && <ApiStatusBanner message={error} />}
+      <AnomalyList anomalies={anomalies} error={error} />
     </AppShell>
   );
 }
