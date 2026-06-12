@@ -2,8 +2,10 @@ import {
   formatAnomalyType,
   mapSeverityToPriority,
 } from "@/lib/mappers/anomalyMapper";
-import type { SolutionAction } from "@/types/anomaly";
-import type { AnomalyPriority } from "@/types/anomaly";
+import { coalesceStatisticalAnalytics } from "@/lib/mappers/safeDefaults";
+import { upsertLiveAnomaly } from "@/lib/store/anomalyStore";
+import type { Anomaly, AnomalyPriority, SolutionAction } from "@/types/anomaly";
+import type { AnomalyWebSocketMessage } from "@/types/websocket";
 
 const SOLUTIONS_BY_PRIORITY: Record<AnomalyPriority, SolutionAction[]> = {
   critical: [
@@ -20,18 +22,17 @@ const SOLUTIONS_BY_PRIORITY: Record<AnomalyPriority, SolutionAction[]> = {
   ],
   low: [{ id: "monitor", label: "Continue Monitoring" }],
 };
-import { upsertLiveAnomaly } from "@/lib/store/anomalyStore";
-import type { Anomaly } from "@/types/anomaly";
-import type { AnomalyWebSocketMessage } from "@/types/websocket";
 
 function defaultSeverityForMessage(message: AnomalyWebSocketMessage): string {
-  if (message.sensor_status.includes("CRITICAL")) {
+  const status = message.sensor_status ?? "";
+
+  if (status.includes("CRITICAL")) {
     return "P1_CRITICAL";
   }
-  if (message.sensor_status.includes("HIGH")) {
+  if (status.includes("HIGH")) {
     return "P2_HIGH";
   }
-  if (message.sensor_status.includes("MODERATE")) {
+  if (status.includes("MODERATE")) {
     return "P3_MEDIUM";
   }
   return "P2_HIGH";
@@ -42,31 +43,32 @@ export function createAnomalyFromWebSocket(
 ): Anomaly {
   const severity = defaultSeverityForMessage(message);
   const priority = mapSeverityToPriority(severity);
-  const id = `live-${message.asset_id}-${Date.now()}`;
+  const assetId = message.asset_id ?? "unknown";
+  const id = `live-${assetId}-${Date.now()}`;
 
   return {
     id,
-    assetId: message.asset_id,
+    assetId,
     priority,
     severity,
     sensorName: "LIVE_SENSOR",
-    sensorStatus: message.sensor_status,
+    sensorStatus: message.sensor_status ?? undefined,
     reason: formatAnomalyType(message.anomaly_type),
-    confidence: message.confidence,
+    confidence: message.confidence ?? 0,
     sessionId: "",
-    statisticalAnalytics: {
-      previous_value: message.statistical_analytics.previous_value,
-      delta_percent: message.statistical_analytics.delta_percent,
-      rolling_avg_24h: message.statistical_analytics.rolling_avg_24h,
-      z_score: message.statistical_analytics.z_score,
-      status: message.sensor_status,
-      rate_of_change_per_min: message.rate_of_change_per_min,
-      anomaly_type: message.anomaly_type,
-      confidence_score: message.confidence,
-    },
+    statisticalAnalytics: coalesceStatisticalAnalytics(
+      message.statistical_analytics,
+      {
+        status: message.sensor_status ?? "",
+        rate_of_change_per_min: message.rate_of_change_per_min ?? 0,
+        anomaly_type: message.anomaly_type ?? "",
+        confidence_score: message.confidence ?? 0,
+      },
+    ),
     solutions: SOLUTIONS_BY_PRIORITY[priority],
-    anomalyDetected: message.anomaly_detected,
+    anomalyDetected: message.anomaly_detected ?? false,
     source: "live",
+    verdict: null,
   };
 }
 

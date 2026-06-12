@@ -6,6 +6,8 @@ export const USE_MOCK_API =
   process.env.NEXT_PUBLIC_USE_MOCK_API !== "false";
 
 export const ANOMALY_HIST_ENDPOINT = `${API_BASE_URL}/anomaly_hist`;
+export const ANOMALY_EVENT_UPDATE_ENDPOINT = `${API_BASE_URL}/anomaly/event/update`;
+export const PROCESS_FILE_ENDPOINT = `${API_BASE_URL}/process-file`;
 
 /** Set to false (or NEXT_PUBLIC_USE_MOCK_WEBSOCKET=false) to use the live WebSocket. */
 export const USE_MOCK_WEBSOCKET =

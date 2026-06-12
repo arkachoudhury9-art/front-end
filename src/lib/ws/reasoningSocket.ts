@@ -21,15 +21,20 @@ function parseMessage(data: unknown): ReasoningEvent | null {
 
     const parsed = JSON.parse(data) as ReasoningEvent;
 
-    if (
-      typeof parsed.asset_id !== "string" ||
-      !Array.isArray(parsed.selected_actions) ||
-      typeof parsed.justification !== "string"
-    ) {
+    if (!parsed || typeof parsed !== "object") {
       return null;
     }
 
-    return parsed;
+    return {
+      asset_id: parsed.asset_id ?? "",
+      session_id: parsed.session_id,
+      selected_actions: parsed.selected_actions ?? [],
+      justification: parsed.justification ?? "",
+      step_by_step_instructions: parsed.step_by_step_instructions ?? [],
+      sop_references: parsed.sop_references ?? [],
+      severity_escalation_required: parsed.severity_escalation_required ?? false,
+      estimated_resolution_time: parsed.estimated_resolution_time,
+    };
   } catch {
     return null;
   }

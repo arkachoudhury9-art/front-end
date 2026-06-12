@@ -53,7 +53,7 @@ export function AnomalyDashboard() {
       setAnomalies((current) =>
         appendLiveAnomalyFromWebSocket(current, message),
       );
-      flashUpdatedRow(message.asset_id);
+      flashUpdatedRow(message.asset_id ?? "");
     },
     [flashUpdatedRow],
   );
@@ -64,7 +64,7 @@ export function AnomalyDashboard() {
       setAnomalies((current) =>
         applyReasoningToLiveAnomalies(current, message),
       );
-      flashUpdatedRow(message.asset_id);
+      flashUpdatedRow(message.asset_id ?? "");
     },
     [flashUpdatedRow],
   );

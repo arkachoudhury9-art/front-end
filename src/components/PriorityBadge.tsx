@@ -19,11 +19,19 @@ type PriorityBadgeProps = {
   analytics?: StatisticalAnalytics;
 };
 
-function formatNumber(value: number, decimals = 2): string {
+function formatNumber(value?: number | null, decimals = 2): string {
+  if (value == null || Number.isNaN(value)) {
+    return "—";
+  }
+
   return value.toFixed(decimals);
 }
 
-function formatStatus(status: string): string {
+function formatStatus(status?: string | null): string {
+  if (!status?.trim()) {
+    return "—";
+  }
+
   return status
     .toLowerCase()
     .split("_")
@@ -37,18 +45,24 @@ function AnalyticsTooltipContent({
   analytics: StatisticalAnalytics;
 }) {
   const metrics = [
-    { label: "Previous value", value: formatNumber(analytics.previous_value) },
-    { label: "Delta", value: analytics.delta_percent, highlight: true },
-    { label: "Rolling avg (24h)", value: formatNumber(analytics.rolling_avg_24h) },
-    { label: "Z-score", value: formatNumber(analytics.z_score), highlight: true },
-    { label: "Status", value: formatStatus(analytics.status) },
+    { label: "Previous value", value: formatNumber(analytics?.previous_value) },
+    { label: "Delta", value: analytics?.delta_percent ?? "—", highlight: true },
+    {
+      label: "Rolling avg (24h)",
+      value: formatNumber(analytics?.rolling_avg_24h),
+    },
+    { label: "Z-score", value: formatNumber(analytics?.z_score), highlight: true },
+    { label: "Status", value: formatStatus(analytics?.status) },
     {
       label: "Rate of change",
-      value: `${formatNumber(analytics.rate_of_change_per_min)}/min`,
+      value: `${formatNumber(analytics?.rate_of_change_per_min)}/min`,
     },
     {
       label: "Confidence",
-      value: `${Math.round(analytics.confidence_score * 100)}%`,
+      value:
+        analytics?.confidence_score != null
+          ? `${Math.round(analytics.confidence_score * 100)}%`
+          : "—",
     },
   ];
 

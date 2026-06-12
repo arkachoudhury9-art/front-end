@@ -1,6 +1,9 @@
-import type { ApiAnomaly, ApiReasoning } from "@/types/api";
+import type { ApiAnomaly } from "@/types/api";
 import type { Anomaly, AnomalyPriority, SolutionAction } from "@/types/anomaly";
-import type { ReasoningEvent } from "@/types/reasoning";
+import {
+  coalesceStatisticalAnalytics,
+  normalizeReasoningEvent,
+} from "@/lib/mappers/safeDefaults";
 
 const SEVERITY_TO_PRIORITY: Record<string, AnomalyPriority> = {
   P1_CRITICAL: "critical",
@@ -25,8 +28,8 @@ const SOLUTIONS_BY_PRIORITY: Record<AnomalyPriority, SolutionAction[]> = {
   low: [{ id: "monitor", label: "Continue Monitoring" }],
 };
 
-export function formatAnomalyType(anomalyType: string): string {
-  if (anomalyType === "NONE") {
+export function formatAnomalyType(anomalyType?: string | null): string {
+  if (!anomalyType || anomalyType === "NONE") {
     return "None";
   }
 
@@ -37,48 +40,52 @@ export function formatAnomalyType(anomalyType: string): string {
     .join(" ");
 }
 
-export function mapSeverityToPriority(severity: string): AnomalyPriority {
-  return SEVERITY_TO_PRIORITY[severity] ?? "medium";
+export function mapSeverityToPriority(severity?: string | null): AnomalyPriority {
+  return SEVERITY_TO_PRIORITY[severity ?? ""] ?? "medium";
 }
 
-function mapApiReasoningToEvent(
-  assetId: string,
-  reasoning: ApiReasoning,
-): ReasoningEvent | undefined {
-  if (!reasoning) {
-    return undefined;
-  }
-
-  return {
-    asset_id: assetId,
-    ...reasoning,
-  };
+function mapApiReasoningToEvent(apiAnomaly: ApiAnomaly) {
+  return normalizeReasoningEvent({
+    asset_id: apiAnomaly.asset_id,
+    session_id: apiAnomaly.session_id,
+    justification: apiAnomaly.justification,
+    selected_actions: apiAnomaly.selected_actions,
+    step_by_step_instructions: apiAnomaly.step_by_step_instructions,
+    sop_references: apiAnomaly.sop_references,
+    severity_escalation_required: apiAnomaly.severity_escalation_required,
+    estimated_resolution_time: apiAnomaly.estimated_resolution_time,
+  });
 }
 
 export function mapApiAnomalyToUi(apiAnomaly: ApiAnomaly): Anomaly {
   const priority = mapSeverityToPriority(apiAnomaly.severity);
 
   return {
-    id: String(apiAnomaly.id),
-    assetId: apiAnomaly.asset_id,
+    id: String(apiAnomaly.id ?? ""),
+    assetId: apiAnomaly.asset_id ?? "",
     priority,
-    severity: apiAnomaly.severity,
-    sensorName: apiAnomaly.sensor_name,
-    sensorStatus: apiAnomaly.sensor_status,
+    severity: apiAnomaly.severity ?? "",
+    sensorName: apiAnomaly.sensor_name ?? "",
+    sensorStatus: apiAnomaly.sensor_status ?? undefined,
     reason: formatAnomalyType(apiAnomaly.anomaly_type),
-    confidence: apiAnomaly.confidence,
-    sessionId: apiAnomaly.session_id,
-    statisticalAnalytics: apiAnomaly.statistical_analytics,
-    solutions: SOLUTIONS_BY_PRIORITY[priority],
-    anomalyDetected: apiAnomaly.anomaly_detected,
-    reasoningEvent: mapApiReasoningToEvent(
-      apiAnomaly.asset_id,
-      apiAnomaly.reasoning,
+    confidence: apiAnomaly.confidence ?? 0,
+    sessionId: apiAnomaly.session_id ?? "",
+    statisticalAnalytics: coalesceStatisticalAnalytics(
+      apiAnomaly.statistical_analytics,
+      {
+        anomaly_type: apiAnomaly.anomaly_type ?? "",
+        confidence_score: apiAnomaly.confidence ?? 0,
+        status: apiAnomaly.sensor_status ?? "",
+      },
     ),
+    solutions: SOLUTIONS_BY_PRIORITY[priority],
+    anomalyDetected: apiAnomaly.anomaly_detected ?? false,
+    reasoningEvent: mapApiReasoningToEvent(apiAnomaly),
     source: "history",
+    verdict: apiAnomaly.verdict ?? null,
   };
 }
 
-export function mapApiAnomaliesToUi(apiAnomalies: ApiAnomaly[]): Anomaly[] {
-  return apiAnomalies.map(mapApiAnomalyToUi);
+export function mapApiAnomaliesToUi(apiAnomalies?: ApiAnomaly[] | null): Anomaly[] {
+  return (apiAnomalies ?? []).map(mapApiAnomalyToUi);
 }

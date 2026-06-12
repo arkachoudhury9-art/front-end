@@ -25,6 +25,7 @@ export type Anomaly = {
   anomalyDetected: boolean;
   reasoningEvent?: ReasoningEvent;
   source: AnomalySource;
+  verdict: string | null;
 };
 
 export function hasReasoningJustification(
@@ -33,13 +34,26 @@ export function hasReasoningJustification(
   return Boolean(reasoningEvent?.justification?.trim());
 }
 
+/** Final verdict already recorded via anomaly_hist — no further review needed. */
+export function hasHistoryVerdict(anomaly: Anomaly): boolean {
+  return anomaly.source === "history" && Boolean(anomaly.verdict?.trim());
+}
+
 /** Review is immediate when anomaly is detected; otherwise requires reasoning justification. */
 export function canReviewAnomaly(anomaly: Anomaly): boolean {
+  if (hasHistoryVerdict(anomaly)) {
+    return false;
+  }
+
   if (anomaly.anomalyDetected) {
     return true;
   }
 
   return hasReasoningJustification(anomaly.reasoningEvent);
+}
+
+export function canViewAnomalySolution(anomaly: Anomaly): boolean {
+  return canReviewAnomaly(anomaly) || hasHistoryVerdict(anomaly);
 }
 
 export type AnomalyDataSource = "api" | "mock";

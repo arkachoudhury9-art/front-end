@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { PicaStatusIndicator } from "@/components/PicaStatusIndicator";
+import { ProcessFileRefreshButton } from "@/components/ProcessFileRefreshButton";
 
 type AppShellProps = {
   title: string;
@@ -55,16 +56,19 @@ export function AppShell({
               )}
             </div>
           </div>
-          {backHref ? (
-            <Link
-              href={backHref}
-              className="rounded-lg border border-surface-border px-4 py-2 text-sm font-medium text-slate-300 transition hover:border-accent/50 hover:bg-accent-muted hover:text-white"
-            >
-              ← {backLabel}
-            </Link>
-          ) : (
-            <PicaStatusIndicator />
-          )}
+          <div className="flex items-center gap-3">
+            <ProcessFileRefreshButton />
+            {backHref ? (
+              <Link
+                href={backHref}
+                className="rounded-lg border border-surface-border px-4 py-2 text-sm font-medium text-slate-300 transition hover:border-accent/50 hover:bg-accent-muted hover:text-white"
+              >
+                ← {backLabel}
+              </Link>
+            ) : (
+              <PicaStatusIndicator />
+            )}
+          </div>
         </div>
       </header>
       <main

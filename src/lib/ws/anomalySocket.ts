@@ -21,14 +21,19 @@ function parseMessage(data: unknown): AnomalyWebSocketMessage | null {
 
     const parsed = JSON.parse(data) as AnomalyWebSocketMessage;
 
-    if (
-      typeof parsed.asset_id !== "string" ||
-      typeof parsed.anomaly_detected !== "boolean"
-    ) {
+    if (!parsed || typeof parsed !== "object") {
       return null;
     }
 
-    return parsed;
+    return {
+      asset_id: parsed.asset_id ?? "",
+      statistical_analytics: parsed.statistical_analytics ?? null,
+      sensor_status: parsed.sensor_status ?? "",
+      rate_of_change_per_min: parsed.rate_of_change_per_min ?? 0,
+      anomaly_detected: parsed.anomaly_detected ?? false,
+      anomaly_type: parsed.anomaly_type ?? "",
+      confidence: parsed.confidence ?? 0,
+    };
   } catch {
     return null;
   }

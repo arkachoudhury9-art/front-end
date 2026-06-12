@@ -15,6 +15,23 @@ type AnomalySolutionViewProps = {
   anomalyId: string;
 };
 
+function MetaItem({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="space-y-1">
+      <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+        {label}
+      </p>
+      <div>{children}</div>
+    </div>
+  );
+}
+
 export function AnomalySolutionView({ anomalyId }: AnomalySolutionViewProps) {
   const [anomaly, setAnomaly] = useState<Anomaly | undefined>();
   const [error, setError] = useState<string | null>(null);
@@ -43,6 +60,10 @@ export function AnomalySolutionView({ anomalyId }: AnomalySolutionViewProps) {
   }, [anomalyId]);
 
   useEffect(() => {
+    if (anomaly?.source !== "live") {
+      return;
+    }
+
     const disconnect = connectReasoningSocket((message) => {
       setReasoningEvent(message);
       setAnomaly((current) => {
@@ -56,7 +77,7 @@ export function AnomalySolutionView({ anomalyId }: AnomalySolutionViewProps) {
     });
 
     return disconnect;
-  }, []);
+  }, [anomaly?.source]);
 
   useEffect(() => {
     return subscribeToAnomalies(syncAnomaly);
@@ -64,10 +85,10 @@ export function AnomalySolutionView({ anomalyId }: AnomalySolutionViewProps) {
 
   if (loading) {
     return (
-      <section className="flex flex-1 items-center justify-center rounded-xl border border-surface-border bg-surface-raised p-6 text-center">
+      <section className="flex flex-1 items-center justify-center rounded-xl border border-surface-border bg-surface-raised p-10 text-center">
         <div>
-          <div className="mx-auto h-6 w-6 animate-spin rounded-full border-2 border-accent border-t-transparent" />
-          <p className="mt-3 text-xs text-slate-400">Loading anomaly details...</p>
+          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-accent border-t-transparent" />
+          <p className="mt-4 text-sm text-slate-400">Loading anomaly details...</p>
         </div>
       </section>
     );
@@ -75,48 +96,55 @@ export function AnomalySolutionView({ anomalyId }: AnomalySolutionViewProps) {
 
   if (!anomaly) {
     return (
-      <section className="flex flex-1 items-center justify-center rounded-xl border border-surface-border bg-surface-raised p-6 text-center text-sm text-slate-400">
+      <section className="flex flex-1 items-center justify-center rounded-xl border border-surface-border bg-surface-raised p-10 text-center text-sm text-slate-400">
         Anomaly not found.
       </section>
     );
   }
 
   return (
-    <>
+    <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto">
       {error && <ApiStatusBanner message={error} />}
-      <div className="flex shrink-0 flex-wrap items-center gap-3 rounded-xl border border-surface-border bg-surface-raised px-4 py-2.5 text-sm">
-        <div className="flex items-center gap-2">
-          <span className="text-[10px] uppercase tracking-wider text-slate-500">
-            Anomaly
-          </span>
-          <span className="font-mono text-sm font-semibold text-accent">
-            {anomaly.id}
-          </span>
+
+      <section className="shrink-0 rounded-xl border border-surface-border bg-surface-raised p-5">
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          <MetaItem label="Anomaly ID">
+            <span className="font-mono text-base font-semibold text-accent">
+              {anomaly.id ?? ""}
+            </span>
+          </MetaItem>
+          <MetaItem label="Asset ID">
+            <span className="font-mono text-sm text-slate-200">
+              {anomaly.assetId ?? ""}
+            </span>
+          </MetaItem>
+          <MetaItem label="Priority">
+            <PriorityBadge
+              priority={anomaly.priority}
+              label={anomaly.severity ?? anomaly.priority}
+              analytics={anomaly.statisticalAnalytics}
+            />
+          </MetaItem>
+          <MetaItem label="Sensor">
+            <span className="text-sm text-slate-200">
+              {anomaly.sensorName ?? ""}
+            </span>
+          </MetaItem>
         </div>
-        <div className="h-4 w-px bg-surface-border" />
-        <div className="flex items-center gap-2">
-          <span className="text-[10px] uppercase tracking-wider text-slate-500">
-            Asset
-          </span>
-          <span className="font-mono text-xs text-slate-200">
-            {anomaly.assetId}
-          </span>
+
+        <div className="mt-5 border-t border-surface-border pt-5">
+          <MetaItem label="Detected Reason">
+            <p className="text-sm leading-relaxed text-slate-300">
+              {anomaly.reason ?? ""}
+            </p>
+          </MetaItem>
         </div>
-        <div className="h-4 w-px bg-surface-border" />
-        <PriorityBadge
-          priority={anomaly.priority}
-          label={anomaly.severity}
-          analytics={anomaly.statisticalAnalytics}
-        />
-        <p className="min-w-0 flex-1 truncate text-xs text-slate-400">
-          {anomaly.reason}
-        </p>
-      </div>
+      </section>
 
       <AnomalySolution
         anomaly={anomaly}
         reasoningEvent={anomaly.reasoningEvent}
       />
-    </>
+    </div>
   );
 }

@@ -27,10 +27,15 @@ function hydrateFromStorage(assetId: string): ReasoningEvent | undefined {
 }
 
 export function setReasoningEvent(event: ReasoningEvent): void {
-  memoryStore.set(event.asset_id, event);
+  const assetId = event.asset_id ?? "";
+  if (!assetId) {
+    return;
+  }
+
+  memoryStore.set(assetId, event);
 
   if (typeof window !== "undefined") {
-    sessionStorage.setItem(storageKey(event.asset_id), JSON.stringify(event));
+    sessionStorage.setItem(storageKey(assetId), JSON.stringify(event));
   }
 
   listeners.forEach((listener) => listener());

@@ -1,28 +1,38 @@
 import type { AnomalyHistResponse } from "@/types/api";
 
-/** Mock payload: initial load includes anomaly_detected, sensor_status, and reasoning fields. */
+/** Mock payload: initial load includes flat reasoning fields on each anomaly. */
 export const mockAnomalyHistResponse: AnomalyHistResponse = {
   anomalies: [
     {
       id: 1,
-      sensor_name: "TEMPERATURE",
-      verdict_summary: null,
+      sensor_name: "WILD",
+      verdict: null,
       severity: "P1_CRITICAL",
       anomaly_type:
         "CRITICAL_THRESHOLD_BREACH_AND_TREND_ESCALATION_AND_CRITICAL_STATISTICAL_ANOMALY",
-      session_id: "815b93e9-a5c8-4b9b-bbca-e67faced3248",
+      session_id: "3fb60c65-54f3-4d20-9c0a-e788a7ec69a5",
       asset_id: "TRAIN_1-VEH_001-W1",
       confidence: 1.0,
       anomaly_detected: true,
       sensor_status: "CRITICAL_OUTLIER",
-      reasoning: null,
+      selected_actions: ["Deploy Field Team"],
+      justification:
+        "Force reading of 450.3 kN exceeds WILD condemning threshold of 350 kN per SOP-WILD-001.",
+      step_by_step_instructions: [
+        "Step 1: Impose 30 kmph speed restriction now",
+        "Step 2: Route TRN-6612 to nearest maintenance depot",
+      ],
+      sop_references: [
+        "SOP-WILD-001: WILD Sensor Anomaly Response, Section 2 Safety Classification",
+      ],
+      severity_escalation_required: true,
       statistical_analytics: {
-        previous_value: 15.54,
-        delta_percent: "+164.15%",
-        rolling_avg_24h: 34.071935483870966,
-        z_score: 3.39,
+        previous_value: 73.83,
+        delta_percent: "+441.98%",
+        rolling_avg_24h: 83.08,
+        z_score: 5.01,
         status: "CRITICAL_OUTLIER",
-        rate_of_change_per_min: 1.24,
+        rate_of_change_per_min: 4.48,
         anomaly_type:
           "CRITICAL_THRESHOLD_BREACH_AND_TREND_ESCALATION_AND_CRITICAL_STATISTICAL_ANOMALY",
         confidence_score: 1.0,
@@ -31,7 +41,7 @@ export const mockAnomalyHistResponse: AnomalyHistResponse = {
     {
       id: 2,
       sensor_name: "FORCE",
-      verdict_summary: null,
+      verdict: null,
       severity: "P1_CRITICAL",
       anomaly_type:
         "CRITICAL_THRESHOLD_BREACH_AND_TREND_ESCALATION_AND_CRITICAL_STATISTICAL_ANOMALY",
@@ -40,7 +50,6 @@ export const mockAnomalyHistResponse: AnomalyHistResponse = {
       confidence: 1.0,
       anomaly_detected: true,
       sensor_status: "CRITICAL_OUTLIER",
-      reasoning: null,
       statistical_analytics: {
         previous_value: 80.97315609097598,
         delta_percent: "+336.28%",
@@ -56,7 +65,7 @@ export const mockAnomalyHistResponse: AnomalyHistResponse = {
     {
       id: 3,
       sensor_name: "VIBRATION",
-      verdict_summary: null,
+      verdict: null,
       severity: "P2_HIGH",
       anomaly_type: "TREND_ESCALATION_AND_STATISTICAL_ANOMALY",
       session_id: "a12c44f1-9b2e-4d10-8f31-2c9e6a7b4d01",
@@ -64,7 +73,16 @@ export const mockAnomalyHistResponse: AnomalyHistResponse = {
       confidence: 0.87,
       anomaly_detected: false,
       sensor_status: "NORMAL",
-      reasoning: null,
+      selected_actions: ["Continue Monitoring"],
+      justification:
+        "Vibration trend elevated but within operational tolerance after AI cross-check.",
+      step_by_step_instructions: [
+        "Monitor vibration readings for the next 24 hours",
+        "Escalate if z-score exceeds 3.0",
+      ],
+      sop_references: ["SOP-VIB-014 §1.3 — Trend Escalation Response"],
+      severity_escalation_required: false,
+      estimated_resolution_time: "24 hours",
       statistical_analytics: {
         previous_value: 2.14,
         delta_percent: "+42.50%",
@@ -79,7 +97,7 @@ export const mockAnomalyHistResponse: AnomalyHistResponse = {
     {
       id: 4,
       sensor_name: "PRESSURE",
-      verdict_summary: null,
+      verdict: "Accepted — schedule inspection",
       severity: "P3_MEDIUM",
       anomaly_type: "THRESHOLD_BREACH",
       session_id: "f8e21b90-1c4a-4f6e-9d22-7b5a3c1e0f44",
@@ -87,18 +105,16 @@ export const mockAnomalyHistResponse: AnomalyHistResponse = {
       confidence: 0.62,
       anomaly_detected: true,
       sensor_status: "MODERATE_OUTLIER",
-      reasoning: {
-        selected_actions: ["Schedule Inspection"],
-        justification:
-          "Historical pressure breach on TRAIN_1-VEH_008-W2 with prior SOP escalation.",
-        step_by_step_instructions: [
-          "Schedule inspection within maintenance window",
-          "Run diagnostic pressure test per SOP-PRES-008",
-        ],
-        sop_references: ["SOP-PRES-008 §2.1 — Pressure Threshold Response"],
-        severity_escalation_required: false,
-        estimated_resolution_time: "4-6 hours",
-      },
+      selected_actions: ["Schedule Inspection"],
+      justification:
+        "Historical pressure breach on TRAIN_1-VEH_008-W2 with prior SOP escalation.",
+      step_by_step_instructions: [
+        "Schedule inspection within maintenance window",
+        "Run diagnostic pressure test per SOP-PRES-008",
+      ],
+      sop_references: ["SOP-PRES-008 §2.1 — Pressure Threshold Response"],
+      severity_escalation_required: false,
+      estimated_resolution_time: "4-6 hours",
       statistical_analytics: {
         previous_value: 101.2,
         delta_percent: "-8.30%",

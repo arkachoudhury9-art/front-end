@@ -2,7 +2,12 @@
 
 import Link from "next/link";
 import { PriorityBadge } from "@/components/PriorityBadge";
-import { canReviewAnomaly, type Anomaly } from "@/types/anomaly";
+import {
+  canReviewAnomaly,
+  canViewAnomalySolution,
+  hasHistoryVerdict,
+  type Anomaly,
+} from "@/types/anomaly";
 
 type AnomalyListProps = {
   anomalies: Anomaly[];
@@ -37,7 +42,7 @@ export function AnomalyList({
       </div>
 
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[900px] border-collapse text-left text-sm">
+        <table className="w-full min-w-[1050px] border-collapse text-left text-sm">
           <thead>
             <tr className="border-b border-surface-border bg-surface/60 text-xs font-semibold uppercase tracking-wider text-slate-400">
               <th className="px-6 py-3">Anomaly ID</th>
@@ -45,12 +50,13 @@ export function AnomalyList({
               <th className="px-6 py-3">Priority</th>
               <th className="px-6 py-3">Reason</th>
               <th className="px-6 py-3">AI Verdict</th>
+              <th className="px-6 py-3">Final Verdict</th>
               <th className="px-6 py-3">Action</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-surface-border">
             {anomalies.map((anomaly) => {
-              const isUpdated = updatedAssetIds.has(anomaly.assetId);
+              const isUpdated = updatedAssetIds.has(anomaly.assetId ?? "");
 
               return (
               <tr
@@ -62,10 +68,10 @@ export function AnomalyList({
                 }`}
               >
                 <td className="whitespace-nowrap px-6 py-4 font-mono text-sm font-medium text-accent">
-                  {anomaly.id}
+                  {anomaly.id ?? ""}
                 </td>
                 <td className="whitespace-nowrap px-6 py-4 font-mono text-slate-300">
-                  {anomaly.assetId}
+                  {anomaly.assetId ?? ""}
                 </td>
                 <td className="px-6 py-4">
                   <PriorityBadge
@@ -75,7 +81,7 @@ export function AnomalyList({
                   />
                 </td>
                 <td className="max-w-md px-6 py-4 text-slate-300">
-                  {anomaly.reason}
+                  {anomaly.reason ?? ""}
                 </td>
                 <td className="px-6 py-4">
                   <span
@@ -88,13 +94,20 @@ export function AnomalyList({
                     {String(anomaly.anomalyDetected)}
                   </span>
                 </td>
+                <td className="max-w-xs px-6 py-4 text-slate-300">
+                  {anomaly.verdict ?? ""}
+                </td>
                 <td className="px-6 py-4">
-                  {canReviewAnomaly(anomaly) ? (
+                  {canViewAnomalySolution(anomaly) ? (
                     <Link
-                      href={`/anomaly/${encodeURIComponent(anomaly.id)}/solution`}
-                      className="inline-flex rounded-lg border border-priority-low/40 bg-priority-low/15 px-3 py-1.5 text-xs font-semibold text-priority-low transition hover:border-priority-low hover:bg-priority-low/25 hover:text-white"
+                      href={`/anomaly/${encodeURIComponent(anomaly.id ?? "")}/solution`}
+                      className={`inline-flex rounded-lg border px-3 py-1.5 text-xs font-semibold transition ${
+                        hasHistoryVerdict(anomaly)
+                          ? "border-surface-border bg-surface text-slate-300 hover:border-slate-500 hover:text-white"
+                          : "border-priority-low/40 bg-priority-low/15 text-priority-low hover:border-priority-low hover:bg-priority-low/25 hover:text-white"
+                      }`}
                     >
-                      Review
+                      {hasHistoryVerdict(anomaly) ? "View" : "Review"}
                     </Link>
                   ) : (
                     <span
