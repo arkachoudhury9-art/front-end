@@ -10,29 +10,29 @@ const config: Config = {
     extend: {
       colors: {
         surface: {
-          DEFAULT: "#0f1419",
-          raised: "#1a2332",
-          border: "#2d3a4f",
+          DEFAULT: "#fafafa",
+          raised: "#ffffff",
+          border: "#e0e0e0",
         },
         accent: {
-          DEFAULT: "#3b82f6",
-          muted: "#1e3a5f",
+          DEFAULT: "#1877f2",
+          muted: "#e7f3ff",
         },
         priority: {
-          critical: "#ef4444",
-          high: "#f97316",
-          medium: "#eab308",
-          low: "#22c55e",
+          critical: "#f44336",
+          high: "#ff9800",
+          medium: "#ffc107",
+          low: "#4caf50",
         },
         ws: {
-          row: "#0c3344",
-          "row-hover": "#104455",
-          border: "#22d3ee",
+          row: "#e7f3ff",
+          "row-hover": "#d8ebff",
+          border: "#1877f2",
         },
       },
       fontFamily: {
-        sans: ["var(--font-geist-sans)", "system-ui", "sans-serif"],
-        mono: ["var(--font-geist-mono)", "ui-monospace", "monospace"],
+        sans: ["Roboto", "Helvetica Neue", "sans-serif"],
+        mono: ["Roboto Mono", "ui-monospace", "monospace"],
       },
     },
   },
