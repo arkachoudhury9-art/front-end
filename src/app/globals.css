@@ -441,16 +441,6 @@
     box-shadow: none;
   }
 
-  /* Tooltips / menus — elevation 8 paper */
-  [role="tooltip"] .shadow-2xl,
-  .shadow-2xl {
-    backdrop-filter: none;
-    background: #fff !important;
-    border-color: transparent !important;
-    border-radius: 4px !important;
-    box-shadow: var(--mat-elevation-8) !important;
-  }
-
   .bg-surface\/50 {
     background: #f5f5f5 !important;
     box-shadow: none;
@@ -511,20 +501,43 @@
   /* Softer main padding feel */
   main {
     color: var(--mat-text);
-  }
-}
-
-@layer utilities {
-  @keyframes fade-up {
-    from {
-      opacity: 0;
-    }
-    to {
-      opacity: 1;
-    }
+    /* Keep fixed tooltips viewport-anchored (no containing block) */
+    transform: none !important;
+    filter: none !important;
+    perspective: none !important;
   }
 
-  main > * {
-    animation: fade-up 0.2s cubic-bezier(0.4, 0, 0.2, 1) both;
+  main > *,
+  section,
+  .overflow-hidden,
+  .overflow-x-auto {
+    transform: none !important;
+    filter: none !important;
+    perspective: none !important;
+  }
+
+  /* Priority analytics tooltip — force correct fixed placement */
+  [role="tooltip"] {
+    position: fixed !important;
+    transform: translateX(-50%) !important;
+    z-index: 9999 !important;
+    margin: 0 !important;
+  }
+
+  [role="tooltip"] .relative {
+    transform: none !important;
+  }
+
+  [role="tooltip"] .absolute.-top-1\.5 {
+    transform: translateX(-50%) rotate(45deg) !important;
+  }
+
+  [role="tooltip"] .shadow-2xl,
+  .shadow-2xl {
+    backdrop-filter: none;
+    background: #fff !important;
+    border-color: transparent !important;
+    border-radius: 4px !important;
+    box-shadow: var(--mat-elevation-8) !important;
   }
 }
