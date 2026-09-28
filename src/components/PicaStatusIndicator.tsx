@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 
 const PICA_MESSAGES = [
-  "PICA is thinking quite a lot",
+  "PICA is thinking",
   "PICA is analyzing",
   "PICA is monitoring",
   "PICA is detecting anomalies",
