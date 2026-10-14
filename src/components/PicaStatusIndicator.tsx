@@ -8,7 +8,7 @@ const PICA_MESSAGES = [
   "PICA is monitoring",
   "PICA is detecting anomaly",
   "PICA is processing sensor data",
-  "PICA is evaluating pattern",
+  "PICA is evaluating patterns",
 ];
 
 const INTERVAL_MS = 5000;
