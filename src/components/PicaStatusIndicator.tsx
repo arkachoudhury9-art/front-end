@@ -6,7 +6,7 @@ const PICA_MESSAGES = [
   "PICA is thinking",
   "PICA is analyzing",
   "PICA is monitoring",
-  "PICA is detecting anomaly",
+  "PICA is detecting anomalies",
   "PICA is processing sensor data",
   "PICA is evaluating pattern",
 ];
