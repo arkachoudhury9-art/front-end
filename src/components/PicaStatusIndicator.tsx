@@ -2,16 +2,10 @@
 
 import { useEffect, useState } from "react";
 
-const PICA_MESSAGES = [
-  "PICA is thinking",
-  "PICA is analyzing",
-  "PICA is monitoring",
-  "PICA is detecting anomaly",
-  "PICA is processing sensor data",
-  "PICA is evaluating pattern",
+const PICA_MESSAGES = [''
 ];
 
-const INTERVAL_MS = 5000;
+const INTERVAL_MS = 500;
 
 export function PicaStatusIndicator() {
   const [index, setIndex] = useState(0);
